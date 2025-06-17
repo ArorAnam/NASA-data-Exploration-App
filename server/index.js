@@ -21,6 +21,18 @@ app.get('/api/apod', async (req, res) => {
   }
 });
 
+app.get('/api/mars-photos', async (req, res) => {
+  try {
+    const { rover, date } = req.query;
+    const response = await axios.get(
+      `https://api.nasa.gov/mars-photos/api/v1/rovers/${rover}/photos?earth_date=${date}&api_key=${process.env.NASA_API_KEY}`
+    );
+    res.json(response.data);
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to fetch Mars Rover photos' });
+  }
+});
+
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
 }); 
