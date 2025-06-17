@@ -1,0 +1,34 @@
+# Node modules
+node_modules/
+client/node_modules/
+server/node_modules/
+
+# Build output
+client/build/
+server/build/
+
+# Environment variables
+client/.env
+server/.env
+
+# Logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Misc
+coverage/
+.env.*.local
+.pnp
+.pnp.js
+.idea/
+.vscode/
+*.swp
+
+# Ignore challenge PDF
+Coding Challenge - Software Engineer (2025).pdf 
