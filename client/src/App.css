@@ -372,3 +372,126 @@ body {
   box-shadow: 0 8px 24px rgba(33,150,243,0.25);
   background: rgba(255,255,255,0.18);
 }
+
+.neos-container {
+  background: rgba(0,0,0,0.7);
+  border-radius: 16px;
+  margin: 2rem auto;
+  padding: 2rem;
+  max-width: 1100px;
+  color: #fff;
+  box-shadow: 0 4px 24px rgba(0,0,0,0.2);
+}
+
+.neos-controls {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1.5rem;
+  align-items: center;
+  margin-bottom: 2rem;
+  justify-content: center;
+}
+
+.neos-controls label {
+  font-size: 1rem;
+  color: #fff;
+}
+
+.neos-controls input[type="date"] {
+  margin-left: 0.5rem;
+  padding: 0.3rem 0.7rem;
+  border-radius: 6px;
+  border: 1px solid #bbb;
+  font-size: 1rem;
+}
+
+.neos-table-wrapper {
+  overflow-x: auto;
+  margin-top: 1.5rem;
+}
+
+.neos-table {
+  width: 100%;
+  border-collapse: collapse;
+  background: rgba(255,255,255,0.07);
+  border-radius: 10px;
+  overflow: hidden;
+}
+
+.neos-table th, .neos-table td {
+  padding: 0.75rem 1.2rem;
+  text-align: left;
+  border-bottom: 1px solid rgba(255,255,255,0.12);
+}
+
+.neos-table th {
+  background: rgba(33,150,243,0.15);
+  color: #90caf9;
+  font-weight: 600;
+}
+
+.neos-table td {
+  color: #fff;
+  font-size: 1rem;
+}
+
+.neos-table a {
+  color: #64b5f6;
+  text-decoration: underline;
+}
+
+@media (max-width: 700px) {
+  .neos-container {
+    padding: 1rem;
+  }
+  .neos-table th, .neos-table td {
+    padding: 0.5rem 0.5rem;
+    font-size: 0.95rem;
+  }
+  .neos-controls {
+    flex-direction: column;
+    gap: 0.7rem;
+  }
+}
+
+.neos-toggle {
+  display: flex;
+  gap: 0.5rem;
+  margin-left: 1.5rem;
+}
+
+.neos-toggle button {
+  background: rgba(33,150,243,0.15);
+  color: #90caf9;
+  border: none;
+  border-radius: 20px;
+  padding: 0.5rem 1.2rem;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: background 0.2s, color 0.2s;
+}
+
+.neos-toggle-active,
+.neos-toggle button:focus {
+  background: linear-gradient(45deg, #2196F3, #00BCD4);
+  color: #fff;
+  outline: none;
+}
+
+.neos-chart-wrapper {
+  background: rgba(255,255,255,0.07);
+  border-radius: 10px;
+  padding: 2rem 1rem 1rem 1rem;
+  margin-top: 1.5rem;
+  box-shadow: 0 2px 12px rgba(33,150,243,0.08);
+}
+
+@media (max-width: 700px) {
+  .neos-toggle {
+    margin-left: 0;
+    justify-content: center;
+  }
+  .neos-chart-wrapper {
+    padding: 1rem 0.2rem 0.5rem 0.2rem;
+  }
+}
