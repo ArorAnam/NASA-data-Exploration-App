@@ -12,6 +12,7 @@ import {
   Tooltip,
   Legend
 } from 'chart.js';
+import API_BASE_URL from './config';
 
 ChartJS.register(CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend);
 
@@ -28,7 +29,7 @@ function NEOs() {
     setError(null);
     setNeos([]);
     try {
-      const res = await fetch(`/api/neo-feed?start_date=${startDate}&end_date=${endDate}`);
+      const res = await fetch(`${API_BASE_URL}/api/neo-feed?start_date=${startDate}&end_date=${endDate}`);
       const data = await res.json();
       const allNeos = Object.values(data.near_earth_objects || {}).flat();
       setNeos(allNeos);
@@ -215,7 +216,7 @@ function APOD() {
   const [modalOpen, setModalOpen] = useState(false);
 
   useEffect(() => {
-    fetch('/api/apod')
+    fetch(`${API_BASE_URL}/api/apod`)
       .then(res => res.json())
       .then(data => {
         setApod(data);
@@ -268,7 +269,7 @@ function MarsRover() {
 
   const fetchMarsPhotos = () => {
     setLoading(true);
-    fetch(`/api/mars-photos?rover=${rover}&date=${date}`)
+    fetch(`${API_BASE_URL}/api/mars-photos?rover=${rover}&date=${date}`)
       .then(res => res.json())
       .then(data => {
         setMarsPhotos(data.photos || []);
