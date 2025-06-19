@@ -13,6 +13,7 @@ import {
   Legend
 } from 'chart.js';
 import API_BASE_URL from './config';
+import Plot from 'react-plotly.js';
 
 ChartJS.register(CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend);
 
@@ -164,6 +165,129 @@ function NEOs() {
   );
 }
 
+function getOrbitPoints(a, e, numPoints = 200) {
+  // a: semi-major axis (AU), e: eccentricity
+  // Returns {x: [], y: []} for the orbit
+  const points = { x: [], y: [] };
+  for (let i = 0; i < numPoints; i++) {
+    const theta = (2 * Math.PI * i) / numPoints;
+    // r = a(1-e^2)/(1+e*cos(theta))
+    const r = a * (1 - e * e) / (1 + e * Math.cos(theta));
+    points.x.push(r * Math.cos(theta));
+    points.y.push(r * Math.sin(theta));
+  }
+  return points;
+}
+
+function InteractiveExploration() {
+  const [query, setQuery] = useState('');
+  const [asteroid, setAsteroid] = useState(null);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
+
+  const handleSearch = async (e) => {
+    e.preventDefault();
+    setLoading(true);
+    setError(null);
+    setAsteroid(null);
+    try {
+      let res = await fetch(`${API_BASE_URL}/api/neo-feed?start_date=2024-06-01&end_date=2024-06-02`);
+      let data = await res.json();
+      let allNeos = Object.values(data.near_earth_objects || {}).flat();
+      let found = allNeos.find(
+        n => n.id === query.trim() || n.name.toLowerCase() === query.trim().toLowerCase()
+      );
+      if (!found) {
+        setError('Asteroid not found in the sample data. Try a different name or ID.');
+      } else {
+        setAsteroid(found);
+      }
+    } catch (err) {
+      setError('Failed to fetch asteroid data.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Prepare orbit data if asteroid is found
+  let orbitPlot = null;
+  if (asteroid && asteroid.orbital_data) {
+    const a = parseFloat(asteroid.orbital_data.semi_major_axis); // AU
+    const e = parseFloat(asteroid.orbital_data.eccentricity);
+    const earthA = 1.0, earthE = 0.0167;
+    const asteroidOrbit = getOrbitPoints(a, e);
+    const earthOrbit = getOrbitPoints(earthA, earthE);
+    orbitPlot = (
+      <Plot
+        data={[
+          {
+            x: earthOrbit.x,
+            y: earthOrbit.y,
+            mode: 'lines',
+            name: "Earth's Orbit",
+            line: { color: '#2196F3', width: 2 },
+          },
+          {
+            x: asteroidOrbit.x,
+            y: asteroidOrbit.y,
+            mode: 'lines',
+            name: `${asteroid.name} Orbit`,
+            line: { color: '#FF9800', width: 2, dash: 'dot' },
+          },
+          {
+            x: [0],
+            y: [0],
+            mode: 'markers',
+            name: 'Sun',
+            marker: { color: '#FFD600', size: 12 },
+          },
+        ]}
+        layout={{
+          title: `Orbit of ${asteroid.name} and Earth (AU)`,
+          xaxis: { title: 'X (AU)', color: '#fff', gridcolor: 'rgba(255,255,255,0.1)' },
+          yaxis: { title: 'Y (AU)', color: '#fff', gridcolor: 'rgba(255,255,255,0.1)' },
+          paper_bgcolor: 'rgba(0,0,0,0.7)',
+          plot_bgcolor: 'rgba(0,0,0,0.7)',
+          font: { color: '#fff' },
+          legend: { x: 0, y: 1, bgcolor: 'rgba(0,0,0,0.3)' },
+          autosize: true,
+          margin: { t: 40, l: 40, r: 20, b: 40 },
+        }}
+        style={{ width: '100%', maxWidth: 600, height: 400, margin: '2rem auto' }}
+        config={{ responsive: true }}
+      />
+    );
+  }
+
+  return (
+    <div className="interactive-container">
+      <h2>Interactive Exploration</h2>
+      <form onSubmit={handleSearch} className="interactive-search-form">
+        <input
+          type="text"
+          placeholder="Enter asteroid name or ID (sample: 2024 KT1)"
+          value={query}
+          onChange={e => setQuery(e.target.value)}
+        />
+        <button type="submit" className="explore-button" disabled={loading || !query.trim()}>
+          {loading ? 'Searching...' : 'Search'}
+        </button>
+      </form>
+      {error && <p style={{ color: 'red' }}>{error}</p>}
+      {asteroid && (
+        <div className="asteroid-info">
+          <h3>{asteroid.name}</h3>
+          <p><strong>ID:</strong> {asteroid.id}</p>
+          <p><strong>Estimated Diameter (m):</strong> {Math.round(asteroid.estimated_diameter.meters.estimated_diameter_min)} - {Math.round(asteroid.estimated_diameter.meters.estimated_diameter_max)}</p>
+          <p><strong>Potentially Hazardous:</strong> {asteroid.is_potentially_hazardous_asteroid ? 'Yes' : 'No'}</p>
+          <p><strong>NASA JPL URL:</strong> <a href={asteroid.nasa_jpl_url} target="_blank" rel="noopener noreferrer">View Details</a></p>
+        </div>
+      )}
+      {orbitPlot}
+    </div>
+  );
+}
+
 function Home() {
   const navigate = useNavigate();
   return (
@@ -196,11 +320,11 @@ function Home() {
               Track asteroids and other objects passing close to Earth, with interactive data and visualizations.
             </p>
           </div>
-          <div className="feature-card">
+          <div className="feature-card clickable" onClick={() => navigate('/interactive')} tabIndex={0} role="button">
             <div className="feature-icon">🔭</div>
             <h3 className="feature-title">Interactive Exploration</h3>
             <p className="feature-description">
-              Dive into space exploration with our interactive features and real-time data visualization.
+              Dive into space exploration with interactive orbit visualizations and more.
             </p>
           </div>
         </div>
@@ -336,6 +460,7 @@ function App() {
         <Route path="/apod" element={<APOD />} />
         <Route path="/mars-rover" element={<MarsRover />} />
         <Route path="/neos" element={<NEOs />} />
+        <Route path="/interactive" element={<InteractiveExploration />} />
       </Routes>
     </Router>
   );
