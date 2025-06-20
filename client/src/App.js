@@ -1,6 +1,7 @@
-import React, { useState, useEffect } from 'react';
-import { BrowserRouter as Router, Routes, Route, Link, useNavigate } from 'react-router-dom';
-import backgroundImage from './assets/background1.webp';
+import React, { useState, useEffect, useRef } from 'react';
+import { BrowserRouter as Router, Routes, Route, Link, useNavigate, Outlet } from 'react-router-dom';
+import backgroundImage1 from './assets/background1.webp';
+import backgroundImage2 from './assets/NASA_SC21_ISS_zoom.jpg';
 import './App.css';
 import { Bar } from 'react-chartjs-2';
 import {
@@ -13,9 +14,31 @@ import {
   Legend
 } from 'chart.js';
 import API_BASE_URL from './config';
-import Plot from 'react-plotly.js';
+import ReactDOM from 'react-dom';
 
 ChartJS.register(CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend);
+
+function BackgroundRotator() {
+  const [active, setActive] = useState(0);
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setActive((prev) => (prev === 0 ? 1 : 0));
+    }, 15000);
+    return () => clearInterval(interval);
+  }, []);
+  return (
+    <>
+      <div
+        className={`bg-image bg-image-1${active === 0 ? ' visible' : ''}`}
+        style={{ backgroundImage: `url(${backgroundImage1})` }}
+      />
+      <div
+        className={`bg-image bg-image-2${active === 1 ? ' visible' : ''}`}
+        style={{ backgroundImage: `url(${backgroundImage2})` }}
+      />
+    </>
+  );
+}
 
 function NEOs() {
   const [startDate, setStartDate] = useState('2024-06-01');
@@ -165,125 +188,112 @@ function NEOs() {
   );
 }
 
-function getOrbitPoints(a, e, numPoints = 200) {
-  // a: semi-major axis (AU), e: eccentricity
-  // Returns {x: [], y: []} for the orbit
-  const points = { x: [], y: [] };
-  for (let i = 0; i < numPoints; i++) {
-    const theta = (2 * Math.PI * i) / numPoints;
-    // r = a(1-e^2)/(1+e*cos(theta))
-    const r = a * (1 - e * e) / (1 + e * Math.cos(theta));
-    points.x.push(r * Math.cos(theta));
-    points.y.push(r * Math.sin(theta));
-  }
-  return points;
-}
+const Portal = ({ children }) => {
+    const modalRoot = document.getElementById('modal-root');
+    const el = useRef(document.createElement('div'));
 
-function InteractiveExploration() {
-  const [query, setQuery] = useState('');
-  const [asteroid, setAsteroid] = useState(null);
+    useEffect(() => {
+        const currentEl = el.current;
+        modalRoot.appendChild(currentEl);
+        return () => modalRoot.removeChild(currentEl);
+    }, [modalRoot]);
+
+    return ReactDOM.createPortal(children, el.current);
+};
+
+function NasaMediaLibrary() {
+  const [query, setQuery] = useState('mars');
+  const [mediaType, setMediaType] = useState('image');
+  const [results, setResults] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
+  const [modalOpen, setModalOpen] = useState(false);
+  const [modalItem, setModalItem] = useState(null);
+  const [shareMsg, setShareMsg] = useState('');
 
   const handleSearch = async (e) => {
     e.preventDefault();
     setLoading(true);
     setError(null);
-    setAsteroid(null);
+    setResults([]);
     try {
-      let res = await fetch(`${API_BASE_URL}/api/neo-feed?start_date=2024-06-01&end_date=2024-06-02`);
-      let data = await res.json();
-      let allNeos = Object.values(data.near_earth_objects || {}).flat();
-      let found = allNeos.find(
-        n => n.id === query.trim() || n.name.toLowerCase() === query.trim().toLowerCase()
-      );
-      if (!found) {
-        setError('Asteroid not found in the sample data. Try a different name or ID.');
-      } else {
-        setAsteroid(found);
-      }
+      const res = await fetch(`/api/nasa-media?query=${encodeURIComponent(query)}&media_type=${mediaType}`);
+      const data = await res.json();
+      setResults(data.collection?.items || []);
     } catch (err) {
-      setError('Failed to fetch asteroid data.');
+      setError('Failed to fetch NASA media.');
     } finally {
       setLoading(false);
     }
   };
 
-  // Prepare orbit data if asteroid is found
-  let orbitPlot = null;
-  if (asteroid && asteroid.orbital_data) {
-    const a = parseFloat(asteroid.orbital_data.semi_major_axis); // AU
-    const e = parseFloat(asteroid.orbital_data.eccentricity);
-    const earthA = 1.0, earthE = 0.0167;
-    const asteroidOrbit = getOrbitPoints(a, e);
-    const earthOrbit = getOrbitPoints(earthA, earthE);
-    orbitPlot = (
-      <Plot
-        data={[
-          {
-            x: earthOrbit.x,
-            y: earthOrbit.y,
-            mode: 'lines',
-            name: "Earth's Orbit",
-            line: { color: '#2196F3', width: 2 },
-          },
-          {
-            x: asteroidOrbit.x,
-            y: asteroidOrbit.y,
-            mode: 'lines',
-            name: `${asteroid.name} Orbit`,
-            line: { color: '#FF9800', width: 2, dash: 'dot' },
-          },
-          {
-            x: [0],
-            y: [0],
-            mode: 'markers',
-            name: 'Sun',
-            marker: { color: '#FFD600', size: 12 },
-          },
-        ]}
-        layout={{
-          title: `Orbit of ${asteroid.name} and Earth (AU)`,
-          xaxis: { title: 'X (AU)', color: '#fff', gridcolor: 'rgba(255,255,255,0.1)' },
-          yaxis: { title: 'Y (AU)', color: '#fff', gridcolor: 'rgba(255,255,255,0.1)' },
-          paper_bgcolor: 'rgba(0,0,0,0.7)',
-          plot_bgcolor: 'rgba(0,0,0,0.7)',
-          font: { color: '#fff' },
-          legend: { x: 0, y: 1, bgcolor: 'rgba(0,0,0,0.3)' },
-          autosize: true,
-          margin: { t: 40, l: 40, r: 20, b: 40 },
-        }}
-        style={{ width: '100%', maxWidth: 600, height: 400, margin: '2rem auto' }}
-        config={{ responsive: true }}
-      />
-    );
-  }
+  useEffect(() => {
+    handleSearch({ preventDefault: () => {} }); // Load default on mount
+    // eslint-disable-next-line
+  }, []);
 
+  const openModal = (item) => { setModalItem(item); setModalOpen(true); setShareMsg(''); };
+  const closeModal = () => { setModalOpen(false); setModalItem(null); setShareMsg(''); };
+  const handleShare = (url) => { navigator.clipboard.writeText(url); setShareMsg('Link copied!'); setTimeout(() => setShareMsg(''), 2000); };
+  
   return (
-    <div className="interactive-container">
-      <h2>Interactive Exploration</h2>
-      <form onSubmit={handleSearch} className="interactive-search-form">
+    <div className="nasa-media-container">
+      <h2>NASA Media Library</h2>
+      <form className="media-search-form" onSubmit={handleSearch}>
         <input
           type="text"
-          placeholder="Enter asteroid name or ID (sample: 2024 KT1)"
           value={query}
           onChange={e => setQuery(e.target.value)}
+          placeholder="Search NASA media..."
         />
-        <button type="submit" className="explore-button" disabled={loading || !query.trim()}>
+        <select value={mediaType} onChange={e => setMediaType(e.target.value)}>
+          <option value="image">Images</option>
+          <option value="video">Videos</option>
+          <option value="audio">Audio</option>
+        </select>
+        <button className="explore-button" type="submit" disabled={loading}>
           {loading ? 'Searching...' : 'Search'}
         </button>
       </form>
       {error && <p style={{ color: 'red' }}>{error}</p>}
-      {asteroid && (
-        <div className="asteroid-info">
-          <h3>{asteroid.name}</h3>
-          <p><strong>ID:</strong> {asteroid.id}</p>
-          <p><strong>Estimated Diameter (m):</strong> {Math.round(asteroid.estimated_diameter.meters.estimated_diameter_min)} - {Math.round(asteroid.estimated_diameter.meters.estimated_diameter_max)}</p>
-          <p><strong>Potentially Hazardous:</strong> {asteroid.is_potentially_hazardous_asteroid ? 'Yes' : 'No'}</p>
-          <p><strong>NASA JPL URL:</strong> <a href={asteroid.nasa_jpl_url} target="_blank" rel="noopener noreferrer">View Details</a></p>
+      <div className="media-gallery-grid">
+        {results.map((item, idx) => {
+          const data = item.data[0];
+          const thumb = item.links?.[0]?.href;
+          return (
+            <div className="media-gallery-card" key={item.data[0].nasa_id + idx} onClick={() => openModal(item)}>
+              {thumb && <img src={thumb} alt={data.title} className="media-thumb" />}
+              <div className="media-title">{data.title}</div>
+              <div className="media-type">{data.media_type}</div>
+            </div>
+          );
+        })}
+        {(!loading && results.length === 0) && <div style={{color:'#fff',textAlign:'center',width:'100%'}}>No results found.</div>}
+      </div>
+      
+      {modalOpen && modalItem && (
+        <div className="modal active" onClick={closeModal}>
+          <div className="modal-content" onClick={e => e.stopPropagation()} style={{maxWidth:'700px'}}>
+            <button className="close-button" onClick={closeModal}>×</button>
+            <h3>{modalItem.data[0].title}</h3>
+            <p style={{fontSize:'1rem',color:'#bbb'}}>{modalItem.data[0].description}</p>
+            {modalItem.data[0].media_type === 'image' && (
+              <img src={modalItem.links?.[0]?.href} alt={modalItem.data[0].title} />
+            )}
+            {modalItem.data[0].media_type === 'video' && (
+              <video src={modalItem.links?.[0]?.href} controls />
+            )}
+            {modalItem.data[0].media_type === 'audio' && (
+              <audio src={modalItem.links?.[0]?.href} controls />
+            )}
+            <div style={{display:'flex',gap:'1rem',marginTop:'1rem',alignItems:'center'}}>
+              <a href={modalItem.links?.[0]?.href} download target="_blank" rel="noopener noreferrer" className="explore-button">Download</a>
+              <button className="explore-button" onClick={() => handleShare(modalItem.links?.[0]?.href)} type="button">Share</button>
+              {shareMsg && <span style={{color:'#90caf9',fontWeight:600}}>{shareMsg}</span>}
+            </div>
+          </div>
         </div>
       )}
-      {orbitPlot}
     </div>
   );
 }
@@ -291,7 +301,7 @@ function InteractiveExploration() {
 function Home() {
   const navigate = useNavigate();
   return (
-    <div className="home-container" style={{ backgroundImage: `url(${backgroundImage})` }}>
+    <div className="home-container">
       <div className="content-overlay">
         <div className="main-header">
           <span role="img" aria-label="rocket" className="header-emoji">🚀</span>
@@ -320,11 +330,11 @@ function Home() {
               Track asteroids and other objects passing close to Earth, with interactive data and visualizations.
             </p>
           </div>
-          <div className="feature-card clickable" onClick={() => navigate('/interactive')} tabIndex={0} role="button">
-            <div className="feature-icon">🔭</div>
-            <h3 className="feature-title">Interactive Exploration</h3>
+          <div className="feature-card clickable" onClick={() => navigate('/media-library')} tabIndex={0} role="button">
+            <div className="feature-icon">🖼️</div>
+            <h3 className="feature-title">NASA Media Library</h3>
             <p className="feature-description">
-              Dive into space exploration with interactive orbit visualizations and more.
+              Search and explore NASA's vast collection of images and videos.
             </p>
           </div>
         </div>
@@ -353,7 +363,7 @@ function APOD() {
   }, []);
 
   return (
-    <div>
+    <>
       <h2>Astronomy Picture of the Day</h2>
       {loading && <p>Loading...</p>}
       {error && <p style={{ color: 'red' }}>{error}</p>}
@@ -378,7 +388,7 @@ function APOD() {
           </div>
         </div>
       )}
-    </div>
+    </>
   );
 }
 
@@ -411,7 +421,7 @@ function MarsRover() {
   };
 
   return (
-    <div>
+    <>
       <h2>Mars Rover Photos</h2>
       <div>
         <input
@@ -448,6 +458,21 @@ function MarsRover() {
           </div>
         </div>
       )}
+    </>
+  );
+}
+
+function PageLayout() {
+  return (
+    <div className="page-container">
+      <div className="page-header">
+        <Link to="/" className="back-home-button">
+          <span>&larr;</span> Back to Home
+        </Link>
+      </div>
+      <div className="page-content-wrapper">
+        <Outlet />
+      </div>
     </div>
   );
 }
@@ -455,12 +480,15 @@ function MarsRover() {
 function App() {
   return (
     <Router>
+      <BackgroundRotator />
       <Routes>
         <Route path="/" element={<Home />} />
-        <Route path="/apod" element={<APOD />} />
-        <Route path="/mars-rover" element={<MarsRover />} />
-        <Route path="/neos" element={<NEOs />} />
-        <Route path="/interactive" element={<InteractiveExploration />} />
+        <Route element={<PageLayout />}>
+          <Route path="/apod" element={<APOD />} />
+          <Route path="/mars-rover" element={<MarsRover />} />
+          <Route path="/neos" element={<NEOs />} />
+          <Route path="/media-library" element={<NasaMediaLibrary />} />
+        </Route>
       </Routes>
     </Router>
   );
