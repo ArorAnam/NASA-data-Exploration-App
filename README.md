@@ -55,6 +55,18 @@ npm test
 ```
 This will execute the Jest test suite for the Express API.
 
+### Frontend
+To run the frontend tests, navigate to the `client` directory and run:
+```
+npm test
+```
+This will execute the Jest and React Testing Library test suite for React components.
+
+For a single test run (non-watch mode), use:
+```
+npm test -- --watchAll=false
+```
+
 ## Features
 - **Astronomy Picture of the Day (APOD):** View NASA's daily featured space image.
 - **Mars Rover Photos:** Browse images from Mars rovers like Curiosity, Spirit, and Opportunity.
