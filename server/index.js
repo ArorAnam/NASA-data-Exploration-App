@@ -51,6 +51,33 @@ app.get('/api/neo-feed', async (req, res) => {
   }
 });
 
+app.get('/api/neo-lookup', async (req, res) => {
+  try {
+    const { id } = req.query;
+    if (!id) return res.status(400).json({ error: 'Missing id parameter' });
+    const response = await axios.get(
+      `https://api.nasa.gov/neo/rest/v1/neo/${id}?api_key=${process.env.NASA_API_KEY}`
+    );
+    res.json(response.data);
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to fetch NEO details' });
+  }
+});
+
+app.get('/api/nasa-media', async (req, res) => {
+  try {
+    const { query, media_type } = req.query;
+    const params = new URLSearchParams();
+    if (query) params.append('q', query);
+    if (media_type) params.append('media_type', media_type);
+    const url = `https://images-api.nasa.gov/search?${params.toString()}`;
+    const response = await axios.get(url);
+    res.json(response.data);
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to fetch NASA media library data' });
+  }
+});
+
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
 }); 
