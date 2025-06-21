@@ -15,9 +15,7 @@
     "axios": "^1.10.0",
     "cors": "^2.8.5",
     "dotenv": "^16.5.0",
-    "express": "^5.1.0",
-    "plotly.js": "^3.0.1",
-    "react-plotly.js": "^2.6.0"
+    "express": "^5.1.0"
   },
   "devDependencies": {
     "concurrently": "^9.1.2"
