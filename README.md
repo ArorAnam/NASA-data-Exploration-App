@@ -18,7 +18,7 @@ A web application to explore and visualize NASA's open data using React and Node
 2. Create a `.env` file with:
    ```
    NASA_API_KEY=DEMO_KEY
-   PORT=5000
+   PORT=5051
    ```
 3. Install dependencies:
    ```
@@ -41,19 +41,35 @@ A web application to explore and visualize NASA's open data using React and Node
    ```
 
 ### Running the App
-- To start both the backend and frontend concurrently, run:
+- To start both the backend and frontend concurrently, run from the root directory:
   ```
   npm run dev
   ```
 
+## Testing
+
+### Backend
+To run the backend tests, navigate to the `server` directory and run:
+```
+npm test
+```
+This will execute the Jest test suite for the Express API.
+
 ## Features
-- Explore NASA's Astronomy Picture of the Day, Mars Rover Photos, Near Earth Objects, and more
-- Data visualization and interactive UI
-- Responsive design
+- **Astronomy Picture of the Day (APOD):** View NASA's daily featured space image.
+- **Mars Rover Photos:** Browse images from Mars rovers like Curiosity, Spirit, and Opportunity.
+- **Near Earth Objects (NEOs):** Track asteroids and comets that pass close to Earth, with data visualizations.
+- **NASA Media Library:** Search NASA's vast collection of images, videos, and audio.
+- Responsive design with a modern, dark-themed UI.
+- Interactive modals for viewing media content.
 
 ## Deployment
-- Backend: Render/Heroku
-- Frontend: Vercel/Netlify
+- **Backend:** Deployed on [Render](https://render.com/).
+- **Frontend:** Deployed on [Vercel](https://vercel.com/).
+
+---
+
+This project was built as a demonstration of full-stack development skills, consuming public APIs to create an interactive user experience.
 
 ---
 
