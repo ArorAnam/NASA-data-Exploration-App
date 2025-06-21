@@ -217,7 +217,7 @@ function NasaMediaLibrary() {
     setError(null);
     setResults([]);
     try {
-      const res = await fetch(`/api/nasa-media?query=${encodeURIComponent(query)}&media_type=${mediaType}`);
+      const res = await fetch(`${API_BASE_URL}/api/nasa-media?query=${encodeURIComponent(query)}&media_type=${mediaType}`);
       const data = await res.json();
       setResults(data.collection?.items || []);
     } catch (err) {
