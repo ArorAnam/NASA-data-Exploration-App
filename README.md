@@ -83,6 +83,29 @@ npm test -- --watchAll=false
 
 This project was built as a demonstration of full-stack development skills, consuming public APIs to create an interactive user experience.
 
+## Visualization Roadmap
+
+### Phase 1: Enhanced NEO Dashboard ✅
+- [x] **3D Asteroid Orbit Viewer** using Three.js
+- [x] **Risk Assessment Matrix** with size vs distance plotting  
+- [x] **Discovery Timeline** showing asteroid discoveries over time
+- [x] **Velocity Distribution Analysis** with interactive histograms
+- [x] **Orbital Period vs Distance** correlation plots
+
+### Phase 2: Solar System Dynamics Integration 📋
+- [ ] **Close Approach Calendar** with upcoming asteroid flybys
+- [ ] **Comprehensive Asteroid Search** with orbital visualization
+- [ ] **Multi-object Comparison Tool**
+- [ ] **Historical Close Approaches Timeline**
+- [ ] **Small Body Database (SBDB) Integration**
+
+### Phase 3: Cross-API Analytics 🚀
+- [ ] **Unified Space Activity Timeline**
+- [ ] **Correlation Analysis** between different space events
+- [ ] **Interactive Solar System Map**
+- [ ] **Mission Overlap Visualization**
+- [ ] **Real-time Solar System Dashboard**
+
 ---
 
 **Next Steps:**

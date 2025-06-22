@@ -691,3 +691,112 @@ body {
   text-transform: capitalize;
   margin-bottom: 0.2rem;
 }
+
+/* NEO Stats Cards */
+.stat-card {
+  background: rgba(255, 255, 255, 0.1);
+  padding: 1rem;
+  border-radius: 8px;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  text-align: center;
+  backdrop-filter: blur(10px);
+}
+
+.stat-card strong {
+  display: block;
+  margin-bottom: 0.5rem;
+  color: #4A90E2;
+}
+
+/* Orbit Viewer */
+.orbit-viewer-container {
+  margin: 2rem 0;
+}
+
+.orbit-viewer {
+  position: relative;
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.orbit-legend {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 1rem;
+  font-size: 0.9rem;
+}
+
+.orbit-legend span {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.orbit-legend span::before {
+  content: '';
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background-color: currentColor;
+}
+
+/* Enhanced NEO Toggle Buttons */
+.neos-toggle {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-top: 1rem;
+}
+
+.neos-toggle button {
+  padding: 0.5rem 1rem;
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  background: rgba(255, 255, 255, 0.1);
+  color: white;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  font-size: 0.9rem;
+}
+
+.neos-toggle button:hover {
+  background: rgba(255, 255, 255, 0.2);
+  border-color: rgba(255, 255, 255, 0.5);
+}
+
+.neos-toggle-active {
+  background: rgba(74, 144, 226, 0.3) !important;
+  border-color: #4A90E2 !important;
+  color: #4A90E2 !important;
+}
+
+/* Chart Wrapper Enhancements */
+.neos-chart-wrapper {
+  margin: 2rem 0;
+  background: rgba(255, 255, 255, 0.05);
+  padding: 1rem;
+  border-radius: 8px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+/* Responsive Design for NEO Analytics */
+@media (max-width: 768px) {
+  .neos-toggle {
+    flex-direction: column;
+  }
+  
+  .neos-toggle button {
+    width: 100%;
+    text-align: center;
+  }
+  
+  .orbit-viewer {
+    height: 300px !important;
+  }
+  
+  .stat-card {
+    padding: 0.75rem;
+    font-size: 0.9rem;
+  }
+}
