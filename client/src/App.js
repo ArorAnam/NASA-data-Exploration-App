@@ -2,6 +2,10 @@ import React, { useState, useEffect, useRef } from 'react';
 import { BrowserRouter as Router, Routes, Route, Link, useNavigate, Outlet } from 'react-router-dom';
 import backgroundImage1 from './assets/background1.webp';
 import backgroundImage2 from './assets/NASA_SC21_ISS_zoom.jpg';
+import backgroundImage3 from './assets/background_3.avif';
+import backgroundImage4 from './assets/background_4.jpg';
+import backgroundImage5 from './assets/background_5.jpg';
+import backgroundImage6 from './assets/background_6.jpg';
 import './App.css';
 import { Bar } from 'react-chartjs-2';
 import {
@@ -24,22 +28,33 @@ ChartJS.register(CategoryScale, LinearScale, BarElement, PointElement, LineEleme
 
 function BackgroundRotator() {
   const [active, setActive] = useState(0);
+  
+  // Array of all background images
+  const backgrounds = [
+    backgroundImage1,
+    backgroundImage2,
+    backgroundImage3,
+    backgroundImage4,
+    backgroundImage5,
+    backgroundImage6
+  ];
+  
   useEffect(() => {
     const interval = setInterval(() => {
-      setActive((prev) => (prev === 0 ? 1 : 0));
-    }, 15000);
+      setActive((prev) => (prev + 1) % backgrounds.length);
+    }, 12000); // 12 seconds per background for smoother rotation
     return () => clearInterval(interval);
-  }, []);
+  }, [backgrounds.length]);
+  
   return (
     <>
-      <div
-        className={`bg-image bg-image-1${active === 0 ? ' visible' : ''}`}
-        style={{ backgroundImage: `url(${backgroundImage1})` }}
-      />
-      <div
-        className={`bg-image bg-image-2${active === 1 ? ' visible' : ''}`}
-        style={{ backgroundImage: `url(${backgroundImage2})` }}
-      />
+      {backgrounds.map((background, index) => (
+        <div
+          key={index}
+          className={`bg-image bg-image-${index + 1}${active === index ? ' visible' : ''}`}
+          style={{ backgroundImage: `url(${background})` }}
+        />
+      ))}
     </>
   );
 }
