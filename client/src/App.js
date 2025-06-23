@@ -18,42 +18,39 @@ import {
   Legend,
   PointElement,
   LineElement,
-  ScatterController
+  ScatterController,
+  LineController
 } from 'chart.js';
 import API_BASE_URL from './config';
 import ReactDOM from 'react-dom';
 import * as THREE from 'three';
 
-ChartJS.register(CategoryScale, LinearScale, BarElement, PointElement, LineElement, ScatterController, Title, Tooltip, Legend);
+ChartJS.register(CategoryScale, LinearScale, BarElement, PointElement, LineElement, LineController, ScatterController, Title, Tooltip, Legend);
+
+// Precompute backgrounds array once outside component
+const BACKGROUND_IMAGES = [
+  backgroundImage1,
+  backgroundImage2,
+  backgroundImage3,
+  backgroundImage4,
+  backgroundImage5,
+  backgroundImage6
+];
 
 function BackgroundRotator() {
   const [active, setActive] = useState(0);
-  
-  // Array of all background images
-  const backgrounds = [
-    backgroundImage1,
-    backgroundImage2,
-    backgroundImage3,
-    backgroundImage4,
-    backgroundImage5,
-    backgroundImage6
-  ];
-  
+
   useEffect(() => {
     const interval = setInterval(() => {
-      setActive((prev) => (prev + 1) % backgrounds.length);
-    }, 12000); // 12 seconds per background for smoother rotation
+      setActive((prev) => (prev + 1) % BACKGROUND_IMAGES.length);
+    }, 12000);
     return () => clearInterval(interval);
-  }, [backgrounds.length]);
-  
+  }, []);
+
   return (
     <>
-      {backgrounds.map((background, index) => (
-        <div
-          key={index}
-          className={`bg-image bg-image-${index + 1}${active === index ? ' visible' : ''}`}
-          style={{ backgroundImage: `url(${background})` }}
-        />
+      {BACKGROUND_IMAGES.map((bg, index) => (
+        <div key={index} className={`bg-image${active === index ? ' visible' : ''}`} style={{ backgroundImage: `url(${bg})` }} />
       ))}
     </>
   );
