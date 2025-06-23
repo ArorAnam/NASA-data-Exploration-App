@@ -1,7 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { BrowserRouter as Router, Routes, Route, Link, useNavigate, Outlet } from 'react-router-dom';
-import backgroundImage5 from './assets/background_5.jpg';
-import backgroundImage6 from './assets/background_6.jpg';
+import backgroundNasa from './assets/NASA_SC21_ISS_zoom.jpg';
 import './App.css';
 import { Bar } from 'react-chartjs-2';
 import {
@@ -25,8 +24,7 @@ ChartJS.register(CategoryScale, LinearScale, BarElement, PointElement, LineEleme
 
 // Precompute backgrounds array once outside component
 const BACKGROUND_IMAGES = [
-  backgroundImage5,
-  backgroundImage6
+  backgroundNasa
 ];
 
 function BackgroundRotator() {
