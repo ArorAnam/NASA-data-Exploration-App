@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { BrowserRouter as Router, Routes, Route, Link, useNavigate, Outlet } from 'react-router-dom';
-import backgroundNasa from './assets/NASA_SC21_ISS_zoom.jpg';
+import backgroundNasa from './assets/nasa_bg.jpg';
 import './App.css';
 import { Bar } from 'react-chartjs-2';
 import {
