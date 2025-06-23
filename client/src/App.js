@@ -1,9 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { BrowserRouter as Router, Routes, Route, Link, useNavigate, Outlet } from 'react-router-dom';
-import backgroundImage1 from './assets/background1.webp';
-import backgroundImage2 from './assets/NASA_SC21_ISS_zoom.jpg';
-import backgroundImage3 from './assets/background_3.avif';
-import backgroundImage4 from './assets/background_4.jpg';
 import backgroundImage5 from './assets/background_5.jpg';
 import backgroundImage6 from './assets/background_6.jpg';
 import './App.css';
@@ -29,10 +25,6 @@ ChartJS.register(CategoryScale, LinearScale, BarElement, PointElement, LineEleme
 
 // Precompute backgrounds array once outside component
 const BACKGROUND_IMAGES = [
-  backgroundImage1,
-  backgroundImage2,
-  backgroundImage3,
-  backgroundImage4,
   backgroundImage5,
   backgroundImage6
 ];
