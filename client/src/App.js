@@ -843,16 +843,26 @@ function NasaMediaLibrary() {
   const [modalOpen, setModalOpen] = useState(false);
   const [modalItem, setModalItem] = useState(null);
   const [shareMsg, setShareMsg] = useState('');
+  const [resultsLoaded, setResultsLoaded] = useState(false);
+
+  const mediaTypes = [
+    { value: 'image', label: 'Images', icon: '🖼️' },
+    { value: 'video', label: 'Videos', icon: '🎬' },
+    { value: 'audio', label: 'Audio', icon: '🎵' }
+  ];
 
   const handleSearch = async (e) => {
     e.preventDefault();
     setLoading(true);
     setError(null);
     setResults([]);
+    setResultsLoaded(false);
+    
     try {
       const res = await fetch(`${API_BASE_URL}/api/nasa-media?query=${encodeURIComponent(query)}&media_type=${mediaType}`);
       const data = await res.json();
       setResults(data.collection?.items || []);
+      setTimeout(() => setResultsLoaded(true), 300);
     } catch (err) {
       setError('Failed to fetch NASA media.');
     } finally {
@@ -865,64 +875,282 @@ function NasaMediaLibrary() {
     // eslint-disable-next-line
   }, []);
 
-  const openModal = (item) => { setModalItem(item); setModalOpen(true); setShareMsg(''); };
-  const closeModal = () => { setModalOpen(false); setModalItem(null); setShareMsg(''); };
-  const handleShare = (url) => { navigator.clipboard.writeText(url); setShareMsg('Link copied!'); setTimeout(() => setShareMsg(''), 2000); };
+  const openModal = (item) => { 
+    setModalItem(item); 
+    setModalOpen(true); 
+    setShareMsg(''); 
+  };
+  
+  const closeModal = () => { 
+    setModalOpen(false); 
+    setModalItem(null); 
+    setShareMsg(''); 
+  };
+  
+  const handleShare = (url) => { 
+    navigator.clipboard.writeText(url); 
+    setShareMsg('Link copied!'); 
+    setTimeout(() => setShareMsg(''), 2000); 
+  };
+
+  const selectedMediaType = mediaTypes.find(type => type.value === mediaType);
   
   return (
     <div className="nasa-media-container">
-      <h2>NASA Media Library</h2>
-      <form className="media-search-form" onSubmit={handleSearch}>
-        <input
-          type="text"
-          value={query}
-          onChange={e => setQuery(e.target.value)}
-          placeholder="Search NASA media..."
-        />
-        <select value={mediaType} onChange={e => setMediaType(e.target.value)}>
-          <option value="image">Images</option>
-          <option value="video">Videos</option>
-          <option value="audio">Audio</option>
-        </select>
-        <button className="explore-button" type="submit" disabled={loading}>
-          {loading ? 'Searching...' : 'Search'}
-        </button>
-      </form>
-      {error && <p style={{ color: 'red' }}>{error}</p>}
-      <div className="media-gallery-grid">
+      <div className="media-header">
+        <h2 className="media-title">NASA Media Library</h2>
+        <p className="media-subtitle">
+          Discover NASA's vast collection of stunning imagery, videos, and audio from space exploration
+        </p>
+      </div>
+
+      <div className="media-search-controls">
+        <div className="search-form-container">
+          <form className="media-search-form" onSubmit={handleSearch}>
+            <div className="search-input-group">
+              <label htmlFor="search-input">Search Query</label>
+              <div className="search-input-wrapper">
+                <input
+                  id="search-input"
+                  type="text"
+                  value={query}
+                  onChange={e => setQuery(e.target.value)}
+                  placeholder="Search NASA media..."
+                  className="media-search-input"
+                />
+                <div className="search-icon">🔍</div>
+              </div>
+            </div>
+
+            <div className="media-type-group">
+              <label htmlFor="media-type-select">Media Type</label>
+              <div className="custom-select-wrapper">
+                <select 
+                  id="media-type-select"
+                  value={mediaType} 
+                  onChange={e => setMediaType(e.target.value)}
+                  className="media-type-select"
+                >
+                  {mediaTypes.map(type => (
+                    <option key={type.value} value={type.value}>
+                      {type.icon} {type.label}
+                    </option>
+                  ))}
+                </select>
+                <div className="select-arrow">▼</div>
+              </div>
+            </div>
+          </form>
+
+          <div className="search-button-container">
+            <button 
+              className="media-search-button" 
+              type="submit" 
+              disabled={loading}
+              onClick={handleSearch}
+            >
+              {loading ? (
+                <>
+                  <div className="button-spinner"></div>
+                  Exploring Library...
+                </>
+              ) : (
+                <>
+                  <span>🚀</span>
+                  Search Media
+                </>
+              )}
+            </button>
+          </div>
+        </div>
+      </div>
+
+      {selectedMediaType && (
+        <div className="media-type-info">
+          <p>
+            Searching for <strong>{selectedMediaType.icon} {selectedMediaType.label}</strong> 
+            {query && ` matching "${query}"`}
+          </p>
+        </div>
+      )}
+
+      {loading && (
+        <div className="media-loading">
+          <div className="loading-spinner media-spinner"></div>
+          <p>Searching NASA's vast media collection...</p>
+        </div>
+      )}
+
+      {error && (
+        <div className="media-error">
+          <p>{error}</p>
+        </div>
+      )}
+
+      {results.length > 0 && (
+        <div className="media-results-info">
+          <p>Found {results.length} {selectedMediaType?.label.toLowerCase()} {query && `for "${query}"`}</p>
+        </div>
+      )}
+
+      <div className={`media-gallery-grid ${resultsLoaded ? 'loaded' : ''}`}>
         {results.map((item, idx) => {
           const data = item.data[0];
           const thumb = item.links?.[0]?.href;
           return (
-            <div className="media-gallery-card" key={item.data[0].nasa_id + idx} onClick={() => openModal(item)}>
-              {thumb && <img src={thumb} alt={data.title} className="media-thumb" />}
-              <div className="media-title">{data.title}</div>
-              <div className="media-type">{data.media_type}</div>
+            <div 
+              className="media-gallery-card" 
+              key={item.data[0].nasa_id + idx} 
+              onClick={() => openModal(item)}
+              style={{ animationDelay: `${idx * 0.1}s` }}
+            >
+              <div className="media-card-content">
+                {thumb && (
+                  <div className="media-thumb-container">
+                    <img src={thumb} alt={data.title} className="media-thumb" />
+                    <div className="media-overlay">
+                      <div className="media-type-badge">
+                        {selectedMediaType?.icon} {data.media_type}
+                      </div>
+                    </div>
+                  </div>
+                )}
+                <div className="media-info">
+                  <div className="media-title">{data.title}</div>
+                  <div className="media-date">
+                    {data.date_created && new Date(data.date_created).toLocaleDateString()}
+                  </div>
+                </div>
+              </div>
             </div>
           );
         })}
-        {(!loading && results.length === 0) && <div style={{color:'#fff',textAlign:'center',width:'100%'}}>No results found.</div>}
+        {(!loading && results.length === 0 && query) && (
+          <div className="no-results">
+            <div className="no-results-icon">🔍</div>
+            <h3>No results found</h3>
+            <p>Try a different search term or media type</p>
+          </div>
+        )}
       </div>
       
       {modalOpen && modalItem && (
         <div className="modal active" onClick={closeModal}>
-          <div className="modal-content" onClick={e => e.stopPropagation()} style={{maxWidth:'700px'}}>
+          <div className="modal-content media-modal" onClick={e => e.stopPropagation()}>
             <button className="close-button" onClick={closeModal}>×</button>
-            <h3>{modalItem.data[0].title}</h3>
-            <p style={{fontSize:'1rem',color:'#bbb'}}>{modalItem.data[0].description}</p>
-            {modalItem.data[0].media_type === 'image' && (
-              <img src={modalItem.links?.[0]?.href} alt={modalItem.data[0].title} />
-            )}
-            {modalItem.data[0].media_type === 'video' && (
-              <video src={modalItem.links?.[0]?.href} controls />
-            )}
-            {modalItem.data[0].media_type === 'audio' && (
-              <audio src={modalItem.links?.[0]?.href} controls />
-            )}
-            <div style={{display:'flex',gap:'1rem',marginTop:'1rem',alignItems:'center'}}>
-              <a href={modalItem.links?.[0]?.href} download target="_blank" rel="noopener noreferrer" className="explore-button">Download</a>
-              <button className="explore-button" onClick={() => handleShare(modalItem.links?.[0]?.href)} type="button">Share</button>
-              {shareMsg && <span style={{color:'#90caf9',fontWeight:600}}>{shareMsg}</span>}
+            <div className="media-modal-header">
+              <h3>{modalItem.data[0].title}</h3>
+              <div className="media-modal-meta">
+                <span className="media-modal-type">
+                  {selectedMediaType?.icon} {modalItem.data[0].media_type}
+                </span>
+                {modalItem.data[0].date_created && (
+                  <span className="media-modal-date">
+                    {new Date(modalItem.data[0].date_created).toLocaleDateString()}
+                  </span>
+                )}
+              </div>
+            </div>
+            
+            <div className="media-modal-content">
+              {modalItem.data[0].description && (
+                <p className="media-description">{modalItem.data[0].description}</p>
+              )}
+              
+              <div className="media-display">
+                {modalItem.data[0].media_type === 'image' && (
+                  <img src={modalItem.links?.[0]?.href} alt={modalItem.data[0].title} />
+                )}
+                {modalItem.data[0].media_type === 'video' && (
+                  <div className="video-container">
+                    <video 
+                      src={modalItem.links?.[0]?.href} 
+                      controls 
+                      preload="metadata"
+                      className="media-video"
+                      onError={(e) => {
+                        e.target.style.display = 'none';
+                        e.target.nextSibling.style.display = 'block';
+                      }}
+                    >
+                      Your browser does not support the video tag.
+                    </video>
+                    <div className="media-error-fallback" style={{display: 'none'}}>
+                      <div className="fallback-content">
+                        <span className="fallback-icon">🎬</span>
+                        <p>Video playback not supported</p>
+                        <a 
+                          href={modalItem.links?.[0]?.href} 
+                          target="_blank" 
+                          rel="noopener noreferrer"
+                          className="fallback-link"
+                        >
+                          Open Video in New Tab
+                        </a>
+                      </div>
+                    </div>
+                  </div>
+                )}
+                {modalItem.data[0].media_type === 'audio' && (
+                  <div className="audio-container">
+                    <div className="audio-player-wrapper">
+                      <div className="audio-info">
+                        <span className="audio-icon">🎵</span>
+                        <div className="audio-details">
+                          <h4>NASA Audio</h4>
+                          <p>{modalItem.data[0].title}</p>
+                        </div>
+                      </div>
+                      <audio 
+                        src={modalItem.links?.[0]?.href} 
+                        controls 
+                        preload="metadata"
+                        className="media-audio"
+                        onError={(e) => {
+                          e.target.style.display = 'none';
+                          e.target.parentNode.nextSibling.style.display = 'block';
+                        }}
+                      >
+                        Your browser does not support the audio tag.
+                      </audio>
+                    </div>
+                    <div className="media-error-fallback" style={{display: 'none'}}>
+                      <div className="fallback-content">
+                        <span className="fallback-icon">🎵</span>
+                        <p>Audio playback not supported</p>
+                        <a 
+                          href={modalItem.links?.[0]?.href} 
+                          target="_blank" 
+                          rel="noopener noreferrer"
+                          className="fallback-link"
+                        >
+                          Open Audio in New Tab
+                        </a>
+                      </div>
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
+            
+            <div className="media-modal-actions">
+              <a 
+                href={modalItem.links?.[0]?.href} 
+                download 
+                target="_blank" 
+                rel="noopener noreferrer" 
+                className="media-action-button download-button"
+              >
+                <span>📥</span> Download
+              </a>
+              <button 
+                className="media-action-button share-button" 
+                onClick={() => handleShare(modalItem.links?.[0]?.href)} 
+                type="button"
+              >
+                <span>🔗</span> Share
+              </button>
+              {shareMsg && <span className="share-message">{shareMsg}</span>}
             </div>
           </div>
         </div>
