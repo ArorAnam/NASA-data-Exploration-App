@@ -981,6 +981,7 @@ function APOD() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [modalOpen, setModalOpen] = useState(false);
+  const [imageLoaded, setImageLoaded] = useState(false);
 
   useEffect(() => {
     fetch(`${API_BASE_URL}/api/apod`)
@@ -995,33 +996,95 @@ function APOD() {
       });
   }, []);
 
+  const handleImageLoad = () => {
+    setImageLoaded(true);
+  };
+
   return (
-    <>
-      <h2>Astronomy Picture of the Day</h2>
-      {loading && <p>Loading...</p>}
-      {error && <p style={{ color: 'red' }}>{error}</p>}
-      {apod && (
-        <div>
-          <h3>{apod.title}</h3>
-          <img
-            src={apod.url}
-            alt={apod.title}
-            style={{ maxWidth: '100%', height: 'auto', cursor: 'pointer' }}
-            onClick={() => setModalOpen(true)}
-          />
-          <p>{apod.explanation}</p>
+    <div className="apod-container">
+      <div className="apod-header">
+        <h2 className="apod-title">Astronomy Picture of the Day</h2>
+        {apod && <p className="apod-date">{new Date(apod.date).toLocaleDateString('en-US', { 
+          weekday: 'long', 
+          year: 'numeric', 
+          month: 'long', 
+          day: 'numeric' 
+        })}</p>}
+      </div>
+      
+      {loading && (
+        <div className="apod-loading">
+          <div className="loading-spinner"></div>
+          <p>Loading today's cosmic wonder...</p>
         </div>
       )}
-
-      {modalOpen && (
-        <div className="modal active" onClick={() => setModalOpen(false)}>
-          <div className="modal-content" onClick={(e) => e.stopPropagation()}>
-            <button className="close-button" onClick={() => setModalOpen(false)}>×</button>
-            <img src={apod?.url} alt={apod?.title} />
+      
+      {error && (
+        <div className="apod-error">
+          <p>{error}</p>
+        </div>
+      )}
+      
+      {apod && (
+        <div className="apod-content">
+          <div className={`apod-image-container ${imageLoaded ? 'loaded' : ''}`}>
+            <h3 className="apod-image-title">{apod.title}</h3>
+            {apod.media_type === 'image' ? (
+              <img
+                src={apod.url}
+                alt={apod.title}
+                className="apod-image"
+                onClick={() => setModalOpen(true)}
+                onLoad={handleImageLoad}
+              />
+            ) : (
+              <div className="apod-video-container">
+                <iframe
+                  src={apod.url}
+                  title={apod.title}
+                  className="apod-video"
+                  frameBorder="0"
+                  allowFullScreen
+                  onLoad={handleImageLoad}
+                />
+              </div>
+            )}
+          </div>
+          
+          <div className={`apod-explanation-container ${imageLoaded ? 'visible' : ''}`}>
+            <div className="apod-explanation">
+              <h4>About this image</h4>
+              <p>{apod.explanation}</p>
+              {apod.copyright && (
+                <p className="apod-copyright">
+                  <strong>Image Credit:</strong> {apod.copyright}
+                </p>
+              )}
+            </div>
           </div>
         </div>
       )}
-    </>
+
+      {modalOpen && apod && (
+        <div className="modal active" onClick={() => setModalOpen(false)}>
+          <div className="modal-content apod-modal" onClick={(e) => e.stopPropagation()}>
+            <button className="close-button" onClick={() => setModalOpen(false)}>×</button>
+            <h3>{apod.title}</h3>
+            {apod.media_type === 'image' ? (
+              <img src={apod.url} alt={apod.title} />
+            ) : (
+              <iframe
+                src={apod.url}
+                title={apod.title}
+                frameBorder="0"
+                allowFullScreen
+                style={{ width: '100%', height: '500px' }}
+              />
+            )}
+          </div>
+        </div>
+      )}
+    </div>
   );
 }
 
@@ -1033,17 +1096,32 @@ function MarsRover() {
   const [error, setError] = useState(null);
   const [modalOpen, setModalOpen] = useState(false);
   const [selectedPhoto, setSelectedPhoto] = useState(null);
+  const [photosLoaded, setPhotosLoaded] = useState(false);
+
+  // Available rovers with their mission details
+  const availableRovers = [
+    { value: 'curiosity', name: 'Curiosity', mission: 'Mars Science Laboratory' },
+    { value: 'opportunity', name: 'Opportunity', mission: 'Mars Exploration Rover B' },
+    { value: 'spirit', name: 'Spirit', mission: 'Mars Exploration Rover A' },
+    { value: 'perseverance', name: 'Perseverance', mission: 'Mars 2020' },
+    { value: 'ingenuity', name: 'Ingenuity', mission: 'Mars Helicopter' }
+  ];
 
   const fetchMarsPhotos = () => {
     setLoading(true);
+    setError(null);
+    setPhotosLoaded(false);
+    setMarsPhotos([]);
+    
     fetch(`${API_BASE_URL}/api/mars-photos?rover=${rover}&date=${date}`)
       .then(res => res.json())
       .then(data => {
         setMarsPhotos(data.photos || []);
         setLoading(false);
+        setTimeout(() => setPhotosLoaded(true), 300);
       })
       .catch(err => {
-        setError('Failed to fetch Mars Rover photos');
+        setError('Failed to fetch Mars Rover photos. Please try a different date or rover.');
         setLoading(false);
       });
   };
@@ -1053,45 +1131,136 @@ function MarsRover() {
     setModalOpen(true);
   };
 
+  const selectedRoverInfo = availableRovers.find(r => r.value === rover);
+
   return (
-    <>
-      <h2>Mars Rover Photos</h2>
-      <div>
-        <input
-          type="text"
-          value={rover}
-          onChange={(e) => setRover(e.target.value)}
-          placeholder="Rover name (e.g., curiosity)"
-        />
-        <input
-          type="date"
-          value={date}
-          onChange={(e) => setDate(e.target.value)}
-        />
-        <button onClick={fetchMarsPhotos}>Fetch Photos</button>
+    <div className="mars-rover-container">
+      <div className="mars-rover-header">
+        <h2 className="mars-rover-title">Mars Rover Photos</h2>
+        <p className="mars-rover-subtitle">
+          Explore the Red Planet through the eyes of NASA's robotic explorers
+        </p>
       </div>
-      {loading && <p>Loading...</p>}
-      {error && <p style={{ color: 'red' }}>{error}</p>}
-      <div className="mars-photos-grid">
+
+      <div className="mars-rover-controls">
+        <div className="controls-row">
+          <div className="control-group">
+            <label htmlFor="rover-select">Choose Rover</label>
+            <div className="custom-select-wrapper">
+              <select 
+                id="rover-select"
+                value={rover}
+                onChange={(e) => setRover(e.target.value)}
+                className="mars-rover-select"
+              >
+                {availableRovers.map(roverOption => (
+                  <option key={roverOption.value} value={roverOption.value}>
+                    {roverOption.name} - {roverOption.mission}
+                  </option>
+                ))}
+              </select>
+              <div className="select-arrow">▼</div>
+            </div>
+          </div>
+
+          <div className="control-group">
+            <label htmlFor="date-input">Mission Date</label>
+            <div className="date-input-wrapper">
+              <input
+                id="date-input"
+                type="date"
+                value={date}
+                onChange={(e) => setDate(e.target.value)}
+                className="mars-rover-date"
+                max={new Date().toISOString().split('T')[0]}
+              />
+            </div>
+          </div>
+        </div>
+
+        <div className="fetch-button-container">
+          <button 
+            onClick={fetchMarsPhotos} 
+            disabled={loading}
+            className="mars-fetch-button"
+          >
+            {loading ? (
+              <>
+                <div className="button-spinner"></div>
+                Exploring Mars...
+              </>
+            ) : (
+              <>
+                <span>🚀</span>
+                Fetch Photos
+              </>
+            )}
+          </button>
+        </div>
+      </div>
+
+      {selectedRoverInfo && (
+        <div className="rover-info">
+          <p>
+            <strong>{selectedRoverInfo.name}</strong> from the {selectedRoverInfo.mission} mission
+          </p>
+        </div>
+      )}
+
+      {loading && (
+        <div className="mars-loading">
+          <div className="loading-spinner mars-spinner"></div>
+          <p>Downloading images from Mars...</p>
+        </div>
+      )}
+
+      {error && (
+        <div className="mars-error">
+          <p>{error}</p>
+        </div>
+      )}
+
+      {marsPhotos.length > 0 && (
+        <div className="mars-results-info">
+          <p>Found {marsPhotos.length} photos from {selectedRoverInfo?.name} on {new Date(date).toLocaleDateString()}</p>
+        </div>
+      )}
+
+      <div className={`mars-photos-grid ${photosLoaded ? 'loaded' : ''}`}>
         {marsPhotos.map((photo, index) => (
-          <img
-            key={index}
-            src={photo.img_src}
-            alt={`Mars Rover Photo ${index}`}
-            onClick={() => openModal(photo)}
-          />
+          <div 
+            key={index} 
+            className="mars-photo-card"
+            style={{ animationDelay: `${index * 0.1}s` }}
+          >
+            <img
+              src={photo.img_src}
+              alt={`Mars Rover Photo ${index + 1}`}
+              onClick={() => openModal(photo)}
+              loading="lazy"
+            />
+            <div className="photo-overlay">
+              <p>Sol {photo.sol}</p>
+              <p>{photo.camera?.full_name || photo.camera?.name}</p>
+            </div>
+          </div>
         ))}
       </div>
 
       {modalOpen && selectedPhoto && (
         <div className="modal active" onClick={() => setModalOpen(false)}>
-          <div className="modal-content" onClick={(e) => e.stopPropagation()}>
+          <div className="modal-content mars-modal" onClick={(e) => e.stopPropagation()}>
             <button className="close-button" onClick={() => setModalOpen(false)}>×</button>
+            <div className="mars-modal-header">
+              <h3>{selectedRoverInfo?.name} - Sol {selectedPhoto.sol}</h3>
+              <p>{selectedPhoto.camera?.full_name || selectedPhoto.camera?.name}</p>
+              <p>Earth Date: {selectedPhoto.earth_date}</p>
+            </div>
             <img src={selectedPhoto.img_src} alt="Mars Rover Photo" />
           </div>
         </div>
       )}
-    </>
+    </div>
   );
 }
 
