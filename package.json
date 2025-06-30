@@ -4,8 +4,11 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
-    "dev": "concurrently \"cd server && node index.js\" \"cd client && npm start\""
+    "test": "npm run test:server && npm run test:client",
+    "test:server": "cd server && npm test",
+    "test:client": "cd client && npm test -- --watchAll=false",
+    "test:watch": "concurrently \"cd server && npm test -- --watch\" \"cd client && npm test\"",
+    "dev": "concurrently \"cd server && node index.js\" \"cd client && PORT=3000 npm start\""
   },
   "keywords": [],
   "author": "",
@@ -20,6 +23,7 @@
   "devDependencies": {
     "concurrently": "^9.1.2",
     "jest": "^30.0.2",
+    "msw": "^2.10.2",
     "supertest": "^7.1.1"
   }
 }

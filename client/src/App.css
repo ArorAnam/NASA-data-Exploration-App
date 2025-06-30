@@ -1757,7 +1757,7 @@ body {
   display: flex;
   flex-direction: row;
   justify-content: center;
-  align-items: end;
+  align-items: flex-end;
   gap: 2rem;
   width: 100%;
   flex-wrap: wrap;
@@ -1800,6 +1800,8 @@ body {
   cursor: pointer;
   transition: all 0.3s ease;
   backdrop-filter: blur(5px);
+  box-sizing: border-box;
+  height: 56px;
 }
 
 .date-input-wrapper {
@@ -1817,6 +1819,8 @@ body {
   font-size: 0.95rem;
   transition: all 0.3s ease;
   backdrop-filter: blur(5px);
+  box-sizing: border-box;
+  height: 56px;
 }
 
 .fetch-button-container {
@@ -2134,6 +2138,11 @@ body {
   color: #FF6B35;
   pointer-events: none;
   font-size: 0.8rem;
+}
+
+/* Select arrow for media library */
+.media-type-group .select-arrow {
+  color: #2196F3;
 }
 
 .mars-rover-date:focus {
